@@ -18,6 +18,28 @@ app.get('/health', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 
+app.get('/api/data', (req, res) => {
+  res.json({ data: 'Some important data' });
+});
+
+app.get('/api/unstable', (req, res) => {
+  if (req.query.fail === 'true') {
+    return res.status(500).json({ error: 'Simulated failure' });
+  }
+  res.json({ message: 'Success' });
+});
+
+app.get('/api/flaky', (req, res) => {
+  // Fixed bug: Removed global state leakage that caused flaky errors
+  res.json({ message: 'Flaky Success' });
+});
+
+// Global error handler to improve API resilience
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
 const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
